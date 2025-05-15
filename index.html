@@ -594,7 +594,7 @@
                 updateGlobalPointsDisplay();
                 saveData();
 
-                withdrawMessage.textContent = `Withdrawal request for ${formatPoints(amount)} points via ${methodName} submitted. (This is a simulation. Account details would be pre-configured.)`;
+                withdrawMessage.textContent = `Withdrawal for ${formatPoints(amount)} points via ${methodName} done.`;
                 withdrawMessage.className = "message success";
                 withdrawAmountInput.value = '';
             }
