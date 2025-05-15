@@ -81,7 +81,6 @@
         
         #bottomNav button.active {
             color: var(--primary-color);
-            /* border-top: 2px solid var(--primary-color); margin-top: -2px; */
         }
 
         /* Tap Page Styles */
@@ -193,7 +192,7 @@
             font-weight: bold;
         }
         .form-group input, .form-group select {
-            width: calc(100% - 20px);
+            width: calc(100% - 22px); /* Adjusted for padding */
             padding: 10px;
             border: 1px solid #ced4da;
             border-radius: 5px;
@@ -208,6 +207,7 @@
             cursor: pointer;
             font-size: 16px;
             width: 100%;
+            margin-top: 10px;
         }
         .message {
             margin-top: 15px;
@@ -215,25 +215,31 @@
         }
         .message.success { color: var(--success-color); }
         .message.error { color: var(--error-color); }
-        .payment-details { margin-top: 10px; border: 1px solid #eee; padding: 10px; border-radius: 5px;}
-        .payment-details input { margin-bottom: 5px; }
+        .payment-details { 
+            margin-top: 10px; 
+            border: 1px solid #eee; 
+            padding: 10px 15px; 
+            border-radius: 5px;
+            background-color: var(--surface-color);
+        }
+        .payment-details p { margin: 5px 0; color: var(--text-secondary-color); font-size: 14px; }
 
 
         /* Floating Text for Tap Animation */
         .floating-text-container {
-            position: fixed; /* Use fixed to overlay on everything */
+            position: fixed; 
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Allows clicks to pass through */
+            pointer-events: none; 
             z-index: 9999;
         }
         .floating-text {
             position: absolute;
             font-size: 28px;
             font-weight: bold;
-            color: var(--cat-color); /* Or gold */
+            color: var(--cat-color); 
             pointer-events: none;
             animation: floatUpFadeOut 1s ease-out forwards;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
@@ -295,21 +301,17 @@
                         <option value="crypto">Crypto (USDT)</option>
                     </select>
                 </div>
-                <div id="paypalDetails" class="payment-details" style="display:block;"> <!-- Default visible -->
-                    <label for="paypalEmail">PayPal Email:</label>
-                    <input type="email" id="paypalEmail" placeholder="your.email@example.com">
+                <div id="paypalDetails" class="payment-details" style="display:block;">
+                    <p>Withdrawal will be processed to your linked PayPal account.</p>
+                    <p><em>(Account linking would be handled server-side or in a separate settings area in a real app.)</em></p>
                 </div>
                 <div id="wireDetails" class="payment-details" style="display:none;">
-                    <label for="bankName">Bank Name:</label>
-                    <input type="text" id="bankName" placeholder="Bank Name">
-                    <label for="accountNumber">Account Number:</label>
-                    <input type="text" id="accountNumber" placeholder="Account Number">
-                    <label for="swiftCode">SWIFT/BIC Code:</label>
-                    <input type="text" id="swiftCode" placeholder="SWIFT Code">
+                    <p>Withdrawal will be processed to your linked bank account.</p>
+                    <p><em>(Account linking would be handled server-side or in a separate settings area in a real app.)</em></p>
                 </div>
                 <div id="cryptoDetails" class="payment-details" style="display:none;">
-                    <label for="cryptoAddress">USDT Wallet Address (TRC20):</label>
-                    <input type="text" id="cryptoAddress" placeholder="Your USDT TRC20 Address">
+                    <p>Withdrawal will be processed to your linked USDT (TRC20) wallet.</p>
+                    <p><em>(Wallet linking would be handled server-side or in a separate settings area in a real app.)</em></p>
                 </div>
                 <button id="submitWithdrawal">Withdraw</button>
                 <p id="withdrawMessage" class="message"></p>
@@ -340,7 +342,6 @@
                             last_name: "User"
                         }
                     },
-                    // For haptic feedback
                     HapticFeedback: {
                         impactOccurred: function(style) { console.log(`Haptic feedback: ${style} (mocked)`); }
                     }
@@ -352,12 +353,12 @@
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
 
-            const MAX_ENERGY = 1000; // Increased max energy
+            const MAX_ENERGY = 1000;
             const POINTS_PER_TAP = 1;
             const ENERGY_COST_PER_TAP = 1;
-            const ENERGY_REFILL_RATE_PER_SECOND = 2; // Refill 2 energy per second
+            const ENERGY_REFILL_RATE_PER_SECOND = 2;
             const YOUTUBE_TASK_POINTS = 1000;
-            const LOCAL_STORAGE_KEY = 'tapswapAppData_v2'; // Added v2 to reset for new structure/defaults
+            const LOCAL_STORAGE_KEY = 'tapswapAppData_v3'; // Incremented version for fresh state
 
             let userData = {
                 username: "User",
@@ -412,16 +413,13 @@
                 if (data) {
                     const parsedData = JSON.parse(data);
                     userData = { ...userData, ...parsedData };
-                    userData.energy = { ...userData.energy, ...parsedData.energy, max: MAX_ENERGY }; // Ensure max energy is current
-                    userData.joiningDate = new Date(userData.joiningDate); // Ensure it's a Date object
+                    userData.energy = { ...userData.energy, ...parsedData.energy, max: MAX_ENERGY };
+                    userData.joiningDate = new Date(userData.joiningDate);
                     userData.energy.lastRefillTime = parseInt(userData.energy.lastRefillTime);
 
-                    // Ensure tasks structure is up-to-date
                     if (!parsedData.tasks || parsedData.tasks.length === 0) {
                          userData.tasks = initializeDefaultTasks();
                     } else {
-                        // Simple merge: take stored tasks, but if new tasks added to default, they won't appear.
-                        // For a more robust merge, would need to compare by ID.
                         const defaultTasks = initializeDefaultTasks();
                         userData.tasks = defaultTasks.map(dt => {
                             const storedTask = parsedData.tasks.find(st => st.id === dt.id && st.type === dt.type);
@@ -432,7 +430,6 @@
                     userData.tasks = initializeDefaultTasks();
                 }
 
-                // Set username from Telegram
                 if (window.Telegram.WebApp.initDataUnsafe.user) {
                     const user = window.Telegram.WebApp.initDataUnsafe.user;
                     userData.username = user.first_name || user.username || "User";
@@ -453,24 +450,21 @@
                     button.classList.toggle('active', button.dataset.page === pageId);
                 });
 
-                // Specific updates when a section is shown
                 if (pageId === 'profilePage') renderProfilePage();
                 if (pageId === 'taskPage') renderTaskPage();
                 if (pageId === 'withdrawPage') renderWithdrawPage();
-                updateGlobalPointsDisplay(); // Update points on all relevant displays
+                updateGlobalPointsDisplay();
             }
 
             function updateGlobalPointsDisplay() {
                 pointsDisplay.textContent = formatPoints(userData.points);
                 withdrawPointsDisplay.textContent = formatPoints(userData.points);
-                // If profile points are displayed differently, update here too
             }
             
             function formatPoints(points) {
-                 return points.toLocaleString(); // Adds commas for thousands
+                 return points.toLocaleString();
             }
 
-            // Tap Page Logic
             function handleTap(event) {
                 if (userData.energy.current >= ENERGY_COST_PER_TAP) {
                     userData.points += POINTS_PER_TAP;
@@ -480,20 +474,15 @@
                     updateEnergyDisplay();
                     saveData();
 
-                    // Visual feedback: floating text
-                    if (event) { // Check if event is passed (it might not be on auto-tap bots)
+                    if (event) {
                         showFloatingText(`+${POINTS_PER_TAP}`, event.clientX, event.clientY);
-                    } else { // Fallback if event is not available
+                    } else {
                         const catRect = catElement.getBoundingClientRect();
                         showFloatingText(`+${POINTS_PER_TAP}`, catRect.left + catRect.width / 2, catRect.top + catRect.height / 2);
                     }
                     
-                    // Haptic feedback
-                    try { Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch (e) { /* ignore if not supported */ }
+                    try { Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch (e) { /* ignore */ }
 
-                } else {
-                    // Optionally, show "No Energy!" message
-                    // showFloatingText("No Energy!", event.clientX, event.clientY);
                 }
             }
 
@@ -502,15 +491,11 @@
                 el.classList.add('floating-text');
                 el.textContent = text;
                 
-                // Adjust x, y to be relative to the container if needed, or use raw clientX/Y
-                el.style.left = `${x - floatingTextContainer.getBoundingClientRect().left - (el.offsetWidth / 2 || 20)}px`; // Center text
-                el.style.top = `${y - floatingTextContainer.getBoundingClientRect().top - (el.offsetHeight / 2 || 15)}px`; // Center text
+                el.style.left = `${x - floatingTextContainer.getBoundingClientRect().left - (el.offsetWidth / 2 || 20)}px`;
+                el.style.top = `${y - floatingTextContainer.getBoundingClientRect().top - (el.offsetHeight / 2 || 15)}px`;
 
                 floatingTextContainer.appendChild(el);
-
-                setTimeout(() => {
-                    el.remove();
-                }, 950); // Slightly less than animation duration
+                setTimeout(() => el.remove(), 950);
             }
             
             function updateEnergyDisplay() {
@@ -525,18 +510,17 @@
                 
                 if (userData.energy.current < userData.energy.max) {
                     const energyToRefill = elapsedSeconds * ENERGY_REFILL_RATE_PER_SECOND;
-                    if (energyToRefill >= 1) { // Refill only if at least 1 point can be refilled
+                    if (energyToRefill >= 1) {
                         userData.energy.current = Math.min(userData.energy.max, userData.energy.current + Math.floor(energyToRefill));
-                        userData.energy.lastRefillTime = now - ( (energyToRefill - Math.floor(energyToRefill) ) * 1000 / ENERGY_REFILL_RATE_PER_SECOND ); // Carry over fractional time
+                        userData.energy.lastRefillTime = now - ( (energyToRefill - Math.floor(energyToRefill) ) * 1000 / ENERGY_REFILL_RATE_PER_SECOND );
                         updateEnergyDisplay();
                         saveData();
                     }
                 } else {
-                     userData.energy.lastRefillTime = now; // If full, just update time to prevent large accumulation when used next
+                     userData.energy.lastRefillTime = now;
                 }
             }
 
-            // Profile Page Logic
             function renderProfilePage() {
                 profileInfoList.innerHTML = `
                     <li><strong>Name:</strong> ${userData.username}</li>
@@ -547,9 +531,8 @@
                 `;
             }
 
-            // Task Page Logic
             function renderTaskPage() {
-                taskListContainer.innerHTML = ''; // Clear existing tasks
+                taskListContainer.innerHTML = '';
                 if (!userData.tasks || userData.tasks.length === 0) {
                     taskListContainer.innerHTML = "<p>No tasks available at the moment.</p>";
                     return;
@@ -577,17 +560,16 @@
                     task.completed = true;
                     userData.points += task.points;
                     updateGlobalPointsDisplay();
-                    renderTaskPage(); // Re-render to update button state
+                    renderTaskPage();
                     saveData();
                     alert(`Task "${task.title}" completed! You earned ${formatPoints(task.points)} points.`);
                 }
             }
 
-            // Withdraw Page Logic
             function renderWithdrawPage() {
                 withdrawMessage.textContent = '';
                 withdrawAmountInput.value = '';
-                updateWithdrawMethodDetails(); // show correct payment details section
+                updateWithdrawMethodDetails();
                 updateGlobalPointsDisplay();
             }
 
@@ -602,7 +584,7 @@
             function handleWithdraw() {
                 const amount = parseInt(withdrawAmountInput.value);
                 const method = withdrawMethodSelect.value;
-                let details = "";
+                let methodName = "";
 
                 if (isNaN(amount) || amount <= 0) {
                     withdrawMessage.textContent = "Please enter a valid amount.";
@@ -615,46 +597,19 @@
                     return;
                 }
 
-                // Collect details based on method
-                if (method === "paypal") {
-                    const email = document.getElementById('paypalEmail').value;
-                    if (!email || !email.includes('@')) { // Basic email validation
-                         withdrawMessage.textContent = "Please enter a valid PayPal email.";
-                         withdrawMessage.className = "message error";
-                         return;
-                    }
-                    details = `PayPal Email: ${email}`;
-                } else if (method === "wire") {
-                    const bankName = document.getElementById('bankName').value;
-                    const accountNumber = document.getElementById('accountNumber').value;
-                    const swiftCode = document.getElementById('swiftCode').value;
-                     if (!bankName || !accountNumber || !swiftCode) {
-                         withdrawMessage.textContent = "Please fill all bank details.";
-                         withdrawMessage.className = "message error";
-                         return;
-                    }
-                    details = `Bank: ${bankName}, Account: ${accountNumber}, SWIFT: ${swiftCode}`;
-                } else if (method === "crypto") {
-                    const address = document.getElementById('cryptoAddress').value;
-                     if (!address || address.length < 20) { // Basic address validation
-                         withdrawMessage.textContent = "Please enter a valid USDT address.";
-                         withdrawMessage.className = "message error";
-                         return;
-                    }
-                    details = `Crypto Address (USDT TRC20): ${address}`;
-                }
-
+                // Get method name for message
+                const selectedOption = withdrawMethodSelect.options[withdrawMethodSelect.selectedIndex];
+                methodName = selectedOption ? selectedOption.text : method;
 
                 // Simulate withdrawal
                 userData.points -= amount;
                 updateGlobalPointsDisplay();
                 saveData();
 
-                withdrawMessage.textContent = `Withdrawal request for ${formatPoints(amount)} points via ${method} (${details}) submitted. (This is a simulation)`;
+                withdrawMessage.textContent = `Withdrawal request for ${formatPoints(amount)} points via ${methodName} submitted. (This is a simulation. Account details would be pre-configured.)`;
                 withdrawMessage.className = "message success";
                 withdrawAmountInput.value = '';
             }
-
 
             // Event Listeners
             navButtons.forEach(button => {
@@ -664,6 +619,12 @@
             });
 
             catElement.addEventListener('click', handleTap);
+            // Support touch events for mobile tapping as well
+            catElement.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent default touch behavior like scrolling or zooming
+                handleTap(e.touches[0]); // Pass the first touch point for coordinate calculation
+            }, { passive: false });
+
 
             taskListContainer.addEventListener('click', (event) => {
                 if (event.target.tagName === 'BUTTON' && event.target.dataset.taskId) {
@@ -676,11 +637,11 @@
 
             // Initialization
             loadData();
-            showSection('tapPage'); // Default page
+            showSection('tapPage');
             updateGlobalPointsDisplay();
             updateEnergyDisplay();
             
-            setInterval(refillEnergy, 1000); // Energy refill interval
+            setInterval(refillEnergy, 1000);
         });
     </script>
 </body>
